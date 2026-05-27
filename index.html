@@ -55,22 +55,6 @@
         return dot / (Math.sqrt(na) * Math.sqrt(nb));
     };
 
-    window.fetchPageContent = async function(url) {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('proxy returned ' + response.status);
-        return window.extractText(await response.text());
-    };
-
-    window.extractText = function(html) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        ['script','style','nav','footer','header','aside','iframe','noscript','form','svg'].forEach(sel =>
-            doc.querySelectorAll(sel).forEach(el => el.remove()));
-        const title = doc.querySelector('title')?.textContent?.trim() || '';
-        const main = doc.querySelector('main, article, [role="main"], .content, #content, .post, .entry-content') || doc.body;
-        return { title, text: main?.textContent?.replace(/\s+/g, ' ').trim() || '' };
-    };
 </script>
 <style>
     :root {
@@ -147,22 +131,16 @@
     .spec-sub { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); letter-spacing: 0.04em; margin-left: auto; }
     .spec-body { padding: 16px 18px 18px; }
     label { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 7px; }
-    input[type=url], textarea {
+    label .opt { color: var(--ink-mute); opacity: 0.7; text-transform: none; letter-spacing: 0.02em; font-size: 11px; }
+    input[type=text], textarea {
         width: 100%; font-family: var(--mono); font-size: 14px; color: var(--ink);
         background: var(--paper); border: 1px solid var(--line); padding: 10px 12px;
         transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input[type=url]::placeholder, textarea::placeholder { color: var(--ink-mute); opacity: 0.7; }
-    input:focus, textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--coral-soft, var(--high-soft)); }
-    textarea { resize: vertical; min-height: 78px; line-height: 1.5; margin-top: 4px; }
-    .paste-toggle {
-        font-family: var(--mono); font-size: 12px; color: var(--ink-soft); cursor: pointer;
-        margin-top: 11px; display: inline-flex; align-items: center; gap: 6px; user-select: none;
-        border-bottom: 1px dashed var(--ink-mute); padding-bottom: 1px;
-    }
-    .paste-toggle:hover { color: var(--ink); border-bottom-color: var(--ink); }
-    .paste-area { display: none; margin-top: 12px; }
-    .paste-area.show { display: block; }
+    input[type=text]::placeholder, textarea::placeholder { color: var(--ink-mute); opacity: 0.7; }
+    input:focus, textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--high-soft); }
+    .lbl-input { font-size: 13px; }
+    textarea { resize: vertical; min-height: 120px; line-height: 1.5; margin-top: 4px; }
 
     /* ── Field guide (tips) ── */
     .field-guide {
@@ -292,6 +270,30 @@
     }
     .colophon b { color: var(--ink-soft); font-weight: 600; }
 
+    /* ── Run banner (what am I looking at?) ── */
+    .run-banner {
+        display: flex; align-items: center; gap: 16px 24px; flex-wrap: wrap;
+        padding: 14px 18px; margin-bottom: 34px;
+        background: var(--card); border: 1px solid var(--line);
+        box-shadow: 5px 5px 0 rgba(52,55,61,0.07);
+    }
+    .run-banner.flash { animation: bannerflash 1s ease; }
+    @keyframes bannerflash {
+        0%   { border-color: var(--coral); box-shadow: 5px 5px 0 rgba(242,87,71,0.30); }
+        100% { border-color: var(--line);  box-shadow: 5px 5px 0 rgba(52,55,61,0.07); }
+    }
+    .run-id { display: flex; align-items: baseline; gap: 11px; flex: none; }
+    .run-no { font-family: var(--mono); font-weight: 600; font-size: 13.5px; letter-spacing: 0.16em; color: var(--coral); }
+    .run-time { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); letter-spacing: 0.06em; }
+    .run-vs { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 240px; flex-wrap: wrap; }
+    .run-side { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; min-width: 0; }
+    .run-side i { width: 9px; height: 9px; flex: none; }
+    .run-side.client i { background: var(--ink); }
+    .run-side.external i { background: var(--coral); }
+    .run-tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); flex: none; }
+    .run-side b { font-weight: 600; color: var(--ink); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .run-arrow { color: var(--ink-mute); font-size: 16px; flex: none; }
+
     @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
@@ -339,13 +341,10 @@
                 <span class="spec-sub">receives the link</span>
             </div>
             <div class="spec-body">
-                <label for="clientUrl">Page URL</label>
-                <input type="url" id="clientUrl" placeholder="https://client.com/service-page">
-                <span class="paste-toggle" data-target="clientPaste">↓ scrape failing? paste the page text</span>
-                <div class="paste-area" id="clientPaste">
-                    <label for="clientText" style="margin-top:4px">Pasted text</label>
-                    <textarea id="clientText" placeholder="Paste the visible text of the client page…"></textarea>
-                </div>
+                <label for="clientLabel">Label <span class="opt">— optional, shows on the readout</span></label>
+                <input type="text" id="clientLabel" class="lbl-input" placeholder="e.g. Client homepage">
+                <label for="clientText" style="margin-top:14px">Page text</label>
+                <textarea id="clientText" placeholder="Paste the visible text of the client page…"></textarea>
             </div>
         </div>
         <div class="specimen spec-external">
@@ -355,13 +354,10 @@
                 <span class="spec-sub">the linking source</span>
             </div>
             <div class="spec-body">
-                <label for="externalUrl">Page URL</label>
-                <input type="url" id="externalUrl" placeholder="https://thirdparty.com/article">
-                <span class="paste-toggle" data-target="externalPaste">↓ scrape failing? paste the page text</span>
-                <div class="paste-area" id="externalPaste">
-                    <label for="externalText" style="margin-top:4px">Pasted text</label>
-                    <textarea id="externalText" placeholder="Paste the external page's text, or a journalist's request you're responding to…"></textarea>
-                </div>
+                <label for="externalLabel">Label <span class="opt">— optional, shows on the readout</span></label>
+                <input type="text" id="externalLabel" class="lbl-input" placeholder="e.g. Forbes article">
+                <label for="externalText" style="margin-top:14px">Page text</label>
+                <textarea id="externalText" placeholder="Paste the external page's text, or a journalist's request you're responding to…"></textarea>
             </div>
         </div>
     </div>
@@ -376,7 +372,17 @@
     </div>
 
     <div class="readout" id="results">
-        <div class="readout-head">Reading</div>
+        <div class="run-banner" id="runBanner">
+            <div class="run-id">
+                <span class="run-no" id="runNo">RUN 01</span>
+                <span class="run-time" id="runTime"></span>
+            </div>
+            <div class="run-vs">
+                <span class="run-side client"><i></i><span class="run-tag">Client</span> <b id="runClientLabel">—</b></span>
+                <span class="run-arrow">↔</span>
+                <span class="run-side external"><i></i><span class="run-tag">External</span> <b id="runExtLabel">—</b></span>
+            </div>
+        </div>
 
         <div class="dial-stage">
             <svg class="gauge" id="gauge" viewBox="0 0 320 240" role="img" aria-label="Relevance gauge">
@@ -488,27 +494,21 @@
     }
 
     // ── UI plumbing ──
-    document.querySelectorAll('.paste-toggle').forEach(t =>
-        t.addEventListener('click', () => $(t.dataset.target).classList.toggle('show')));
     function setStatus(msg, pct) { $('status').classList.add('show'); $('statusText').textContent = msg; if (pct != null) $('statusBar').style.width = pct + '%'; }
     function hideStatus() { $('status').classList.remove('show'); }
     function showErr(msg) { $('errBox').textContent = msg; $('errBox').classList.add('show'); }
     function clearErr() { $('errBox').textContent = ''; $('errBox').classList.remove('show'); }
 
-    async function getContent(role) {
-        const pasted = $(role + 'Text').value.trim();
-        const url = $(role + 'Url').value.trim();
-        if (pasted) return { text: pasted, source: 'pasted' };
-        if (!url) throw new Error('Provide a URL or pasted text for the ' + role + ' page.');
-        try {
-            setStatus('Fetching ' + role + ' page…');
-            const r = await window.fetchPageContent(url);
-            if (!r.text || r.text.split(/\s+/).length < 30) throw new Error('too little text extracted');
-            return { text: r.text, source: 'scraped' };
-        } catch (e) {
-            $(role + 'Paste').classList.add('show');
-            throw new Error('Could not scrape the ' + role + ' page (' + e.message + '). Copy the page text into the ' + role + ' paste box and run again.');
-        }
+    function getContent(role) {
+        const text = $(role + 'Text').value.trim();
+        if (!text) throw new Error('Paste the ' + role + ' page text before measuring.');
+        if (text.split(/\s+/).length < 30) throw new Error('The ' + role + ' text is very short — paste more of the page for a reliable read.');
+        return { text, label: $(role + 'Label').value.trim() };
+    }
+    function deriveLabel(c) {
+        if (c.label) return c.label;
+        const w = c.text.split(/\s+/);
+        return '“' + w.slice(0, 6).join(' ') + (w.length > 6 ? '…' : '') + '”';
     }
     async function embedChunks(chunks, label) {
         const vecs = [];
@@ -516,11 +516,12 @@
         return vecs;
     }
 
+    let runCount = 0;
     $('runBtn').addEventListener('click', async () => {
-        clearErr(); $('results').classList.remove('show'); $('runBtn').disabled = true;
+        clearErr(); $('runBtn').disabled = true;
         try {
-            const client = await getContent('client');
-            const external = await getContent('external');
+            const client = getContent('client');
+            const external = getContent('external');
             const clientChunks = chunkText(client.text);
             const externalChunks = chunkText(external.text);
             if (!clientChunks.length || !externalChunks.length) throw new Error('Not enough readable text on one of the pages to compare.');
@@ -545,13 +546,24 @@
             const blended = BLEND_WHOLE * wholePage + BLEND_PEAK * peak;
             const score = blendedToScore(blended);
 
-            render({ score, wholePage, peak, alignment, strongShare, pairs, client, external, clientChunks, externalChunks });
+            runCount++;
+            render({ score, wholePage, peak, alignment, strongShare, pairs, client, external, clientChunks, externalChunks,
+                     run: runCount, clientLabel: deriveLabel(client), externalLabel: deriveLabel(external) });
             hideStatus();
         } catch (e) { hideStatus(); showErr(e.message); }
         finally { $('runBtn').disabled = false; }
     });
 
     function render(r) {
+        $('runNo').textContent = 'RUN ' + String(r.run).padStart(2, '0');
+        $('runTime').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+        $('runClientLabel').textContent = r.clientLabel;
+        $('runExtLabel').textContent = r.externalLabel;
+        $('runClientLabel').title = r.clientLabel;
+        $('runExtLabel').title = r.externalLabel;
+        const banner = $('runBanner');
+        banner.classList.remove('flash'); void banner.offsetWidth; banner.classList.add('flash');
+
         const tier = r.score >= BAND.high ? 'high' : r.score >= BAND.medium ? 'medium' : 'low';
         const word = { high: 'High', medium: 'Medium', low: 'Low' }[tier];
         $('verdict').className = 'verdict ' + tier;
@@ -602,7 +614,7 @@
         $('colophon').innerHTML =
             `MODEL <b>bge-small-en-v1.5</b>, 384-dim, in-browser &nbsp;·&nbsp; ` +
             `SCORE <b>${BLEND_WHOLE.toFixed(2)}·whole-page + ${BLEND_PEAK.toFixed(2)}·peak</b>, banded at ${BAND.high}/${BAND.medium} &nbsp;·&nbsp; ` +
-            `EXTERNAL <b>${r.external.source}</b>, ${r.externalChunks.length} chunks &nbsp;·&nbsp; CLIENT <b>${r.client.source}</b>, ${r.clientChunks.length} chunks &nbsp;·&nbsp; ` +
+            `CLIENT <b>${r.clientChunks.length} chunks</b> &nbsp;·&nbsp; EXTERNAL <b>${r.externalChunks.length} chunks</b> &nbsp;·&nbsp; ` +
             `STRONGLY-MATCHED external chunks <b>${Math.round(r.strongShare*100)}%</b><br>` +
             `Cosine similarity runs high and compressed for this model — tune the constants at the top of the script against links you already judge good or bad.`;
 
