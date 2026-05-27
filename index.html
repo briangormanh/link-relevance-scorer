@@ -181,8 +181,9 @@
     .field-guide[open] > summary .gmark { transform: rotate(90deg); }
     .field-guide > summary:hover { color: var(--coral); }
     .fg-body { padding: 0 22px 22px; }
-    .fg-intro { font-size: 14.5px; color: var(--ink-soft); line-height: 1.62; padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid var(--line-soft); }
-    .fg-intro b { color: var(--ink); font-weight: 600; }
+    .fg-rule { font-size: 14px; color: var(--ink-soft); line-height: 1.6; background: var(--high-soft); border-left: 3px solid var(--coral); padding: 14px 16px; margin-bottom: 20px; }
+    .fg-rule-h { display: block; font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--coral); margin-bottom: 7px; }
+    .fg-rule b { color: var(--ink); font-weight: 600; }
     .fg-scenario { margin-bottom: 22px; }
     .fg-scenario:last-of-type { margin-bottom: 0; }
     .fg-scenario h4 { font-family: var(--sans); font-weight: 700; font-size: 15px; color: var(--ink); margin-bottom: 9px; display: flex; align-items: center; gap: 10px; }
@@ -306,7 +307,10 @@
     <details class="field-guide">
         <summary><span class="gmark">▸</span> Measuring a link that doesn't exist yet?</summary>
         <div class="fg-body">
-            <p class="fg-intro">No real linking page to measure yet? Stand in for it with content that represents each side's topic. One rule makes every method below work: <b>pick a level, whole site or a specific page, and use that same level on both sides.</b> Comparing a broad homepage against a narrow article reads muddy.</p>
+            <div class="fg-rule">
+                <span class="fg-rule-h">Compare apples to apples</span>
+                Match the <b>zoom level</b> on both sides. A homepage is wide-angle (the whole business); an article is a close-up (one topic). Compare wide-angle to close-up and the broad side's signal gets diluted, so a genuinely relevant link scores low and you wave it off. <b>Broad-to-broad for the whole site, page-to-page for a specific placement. Never broad-to-narrow.</b>
+            </div>
 
             <div class="fg-scenario">
                 <h4>Sizing up a potential link</h4>
