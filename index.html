@@ -164,6 +164,38 @@
     .paste-area { display: none; margin-top: 12px; }
     .paste-area.show { display: block; }
 
+    /* ── Field guide (tips) ── */
+    .field-guide {
+        margin-top: 18px; background: var(--card); border: 1px solid var(--line);
+        box-shadow: 5px 5px 0 rgba(52,55,61,0.07);
+        opacity: 0; animation: rise 0.7s ease 0.12s forwards;
+    }
+    .field-guide > summary {
+        list-style: none; cursor: pointer; user-select: none;
+        display: flex; align-items: center; gap: 12px; padding: 15px 20px;
+        font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--ink); transition: color 0.15s;
+    }
+    .field-guide > summary::-webkit-details-marker { display: none; }
+    .field-guide > summary .gmark { color: var(--coral); font-weight: 600; font-size: 14px; transition: transform 0.2s ease; }
+    .field-guide[open] > summary .gmark { transform: rotate(90deg); }
+    .field-guide > summary:hover { color: var(--coral); }
+    .fg-body { padding: 0 22px 22px; }
+    .fg-intro { font-size: 14.5px; color: var(--ink-soft); line-height: 1.62; padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid var(--line-soft); }
+    .fg-intro b { color: var(--ink); font-weight: 600; }
+    .fg-scenario { margin-bottom: 22px; }
+    .fg-scenario:last-of-type { margin-bottom: 0; }
+    .fg-scenario h4 { font-family: var(--sans); font-weight: 700; font-size: 15px; color: var(--ink); margin-bottom: 9px; display: flex; align-items: center; gap: 10px; }
+    .fg-scenario h4::before { content: ''; width: 10px; height: 10px; background: var(--coral); flex: none; }
+    .fg-scenario p { font-size: 14px; color: var(--ink-soft); line-height: 1.62; margin-bottom: 9px; }
+    .fg-scenario ul { list-style: none; margin: 0; padding: 0; }
+    .fg-scenario li { font-size: 14px; color: var(--ink-soft); line-height: 1.55; padding-left: 18px; position: relative; margin-bottom: 8px; }
+    .fg-scenario li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; background: var(--coral); }
+    .fg-scenario li b { color: var(--ink); font-weight: 600; }
+    .fg-scenario ul ul { margin-top: 8px; padding-left: 2px; }
+    .fg-scenario ul ul li::before { background: var(--ink-mute); width: 5px; height: 5px; }
+    .fg-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line-soft); font-size: 13px; color: var(--ink-mute); line-height: 1.62; }
+
     /* ── Console / run bar ── */
     .console {
         margin-top: 20px; background: var(--ink); color: var(--paper);
@@ -271,6 +303,30 @@
         <p class="lede">Measures how topically aligned a backlink is by embedding both pages and reading the overlap. Relevance is half of a link's SEO worth; this gauges that half. Authority you judge separately.</p>
     </div>
 
+    <details class="field-guide">
+        <summary><span class="gmark">▸</span> Measuring a link that doesn't exist yet?</summary>
+        <div class="fg-body">
+            <p class="fg-intro">No real linking page to measure yet? Stand in for it with content that represents each side's topic. One rule makes every method below work: <b>pick a level, whole site or a specific page, and use that same level on both sides.</b> Comparing a broad homepage against a narrow article reads muddy.</p>
+
+            <div class="fg-scenario">
+                <h4>Sizing up a potential link</h4>
+                <ul>
+                    <li><b>Client side.</b> The specific page you hope to earn the link to. No specific target? Use the homepage as a stand-in for the whole site.</li>
+                    <li><b>Third-party side.</b> Whatever best represents them at the same level:
+                        <ul>
+                            <li>Their homepage or About page (the About page is often a cleaner topical read)</li>
+                            <li>A description from an AI search engine: ask Perplexity "what is [company]?" and paste it. Grab one for both sides so you compare like with like.</li>
+                            <li>One of their articles closest to your client's topic. Just know a hand-picked match shows the best case, not how relevant the whole site is.</li>
+                            <li><b>PR or journalist link?</b> Paste their request itself: it describes the article your link will live in, the closest read on context you'll get.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <p class="fg-note">Read these as directional. They're looser than scoring a real link (an actual page pointing at a specific target), but they tell you whether the two sides share a topical world.</p>
+        </div>
+    </details>
+
     <div class="specimens">
         <div class="specimen spec-client">
             <div class="spec-head">
@@ -300,7 +356,7 @@
                 <span class="paste-toggle" data-target="externalPaste">↓ scrape failing? paste the page text</span>
                 <div class="paste-area" id="externalPaste">
                     <label for="externalText" style="margin-top:4px">Pasted text</label>
-                    <textarea id="externalText" placeholder="Paste the visible text of the external page…"></textarea>
+                    <textarea id="externalText" placeholder="Paste the external page's text, or a journalist's request you're responding to…"></textarea>
                 </div>
             </div>
         </div>
