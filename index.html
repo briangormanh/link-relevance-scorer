@@ -131,16 +131,14 @@
     .spec-sub { font-family: var(--mono); font-size: 12px; color: var(--ink-mute); letter-spacing: 0.04em; margin-left: auto; }
     .spec-body { padding: 16px 18px 18px; }
     label { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 7px; }
-    label .opt { color: var(--ink-mute); opacity: 0.7; text-transform: none; letter-spacing: 0.02em; font-size: 11px; }
-    input[type=text], textarea {
+    textarea {
         width: 100%; font-family: var(--mono); font-size: 14px; color: var(--ink);
         background: var(--paper); border: 1px solid var(--line); padding: 10px 12px;
         transition: border-color 0.15s, box-shadow 0.15s;
+        resize: vertical; min-height: 130px; line-height: 1.5; margin-top: 4px;
     }
-    input[type=text]::placeholder, textarea::placeholder { color: var(--ink-mute); opacity: 0.7; }
-    input:focus, textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--high-soft); }
-    .lbl-input { font-size: 13px; }
-    textarea { resize: vertical; min-height: 120px; line-height: 1.5; margin-top: 4px; }
+    textarea::placeholder { color: var(--ink-mute); opacity: 0.7; }
+    textarea:focus { outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--high-soft); }
 
     /* ── Field guide (tips) ── */
     .field-guide {
@@ -290,8 +288,7 @@
     .run-side i { width: 9px; height: 9px; flex: none; }
     .run-side.client i { background: var(--ink); }
     .run-side.external i { background: var(--coral); }
-    .run-tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); flex: none; }
-    .run-side b { font-weight: 600; color: var(--ink); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .run-tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); flex: none; }
     .run-arrow { color: var(--ink-mute); font-size: 16px; flex: none; }
 
     @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -341,9 +338,7 @@
                 <span class="spec-sub">receives the link</span>
             </div>
             <div class="spec-body">
-                <label for="clientLabel">Label <span class="opt">— optional, shows on the readout</span></label>
-                <input type="text" id="clientLabel" class="lbl-input" placeholder="e.g. Client homepage">
-                <label for="clientText" style="margin-top:14px">Page text</label>
+                <label for="clientText">Page text</label>
                 <textarea id="clientText" placeholder="Paste the visible text of the client page…"></textarea>
             </div>
         </div>
@@ -354,9 +349,7 @@
                 <span class="spec-sub">the linking source</span>
             </div>
             <div class="spec-body">
-                <label for="externalLabel">Label <span class="opt">— optional, shows on the readout</span></label>
-                <input type="text" id="externalLabel" class="lbl-input" placeholder="e.g. Forbes article">
-                <label for="externalText" style="margin-top:14px">Page text</label>
+                <label for="externalText">Page text</label>
                 <textarea id="externalText" placeholder="Paste the external page's text, or a journalist's request you're responding to…"></textarea>
             </div>
         </div>
@@ -378,9 +371,9 @@
                 <span class="run-time" id="runTime"></span>
             </div>
             <div class="run-vs">
-                <span class="run-side client"><i></i><span class="run-tag">Client</span> <b id="runClientLabel">—</b></span>
+                <span class="run-side client"><i></i><span class="run-tag">Client</span></span>
                 <span class="run-arrow">↔</span>
-                <span class="run-side external"><i></i><span class="run-tag">External</span> <b id="runExtLabel">—</b></span>
+                <span class="run-side external"><i></i><span class="run-tag">External</span></span>
             </div>
         </div>
 
@@ -503,12 +496,7 @@
         const text = $(role + 'Text').value.trim();
         if (!text) throw new Error('Paste the ' + role + ' page text before measuring.');
         if (text.split(/\s+/).length < 30) throw new Error('The ' + role + ' text is very short — paste more of the page for a reliable read.');
-        return { text, label: $(role + 'Label').value.trim() };
-    }
-    function deriveLabel(c) {
-        if (c.label) return c.label;
-        const w = c.text.split(/\s+/);
-        return '“' + w.slice(0, 6).join(' ') + (w.length > 6 ? '…' : '') + '”';
+        return { text };
     }
     async function embedChunks(chunks, label) {
         const vecs = [];
@@ -547,8 +535,7 @@
             const score = blendedToScore(blended);
 
             runCount++;
-            render({ score, wholePage, peak, alignment, strongShare, pairs, client, external, clientChunks, externalChunks,
-                     run: runCount, clientLabel: deriveLabel(client), externalLabel: deriveLabel(external) });
+            render({ score, wholePage, peak, alignment, strongShare, pairs, client, external, clientChunks, externalChunks, run: runCount });
             hideStatus();
         } catch (e) { hideStatus(); showErr(e.message); }
         finally { $('runBtn').disabled = false; }
@@ -557,10 +544,6 @@
     function render(r) {
         $('runNo').textContent = 'RUN ' + String(r.run).padStart(2, '0');
         $('runTime').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-        $('runClientLabel').textContent = r.clientLabel;
-        $('runExtLabel').textContent = r.externalLabel;
-        $('runClientLabel').title = r.clientLabel;
-        $('runExtLabel').title = r.externalLabel;
         const banner = $('runBanner');
         banner.classList.remove('flash'); void banner.offsetWidth; banner.classList.add('flash');
 
